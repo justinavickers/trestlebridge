@@ -56,9 +56,21 @@ namespace TrestlebridgeEntity.Controllers
             {
                 return NotFound();
             }
+            var animalsFromSQL = _context.Animals.Include(a => a.AnimalType).FromSql($@"
+                select fc.Id, fc.Capacity, fc.FacilityTypeId, fc.FarmId,  a.AnimalTypeId, a.FacilityId
+                from Facilities fc
+                join Animals a on a.FacilityId = fc.Id
+                join AnimalTypes at on a.AnimalTypeId = at.Id
+                where fc.Id = {id}
+              ").ToList();
 
+            foreach (Animal animal in animalsFromSQL)
+            {
+             facility.Animals.Add(animal);       
+            }
             return View(facility);
         }
+    
 
         // GET: Facilities/Create
         [Authorize]

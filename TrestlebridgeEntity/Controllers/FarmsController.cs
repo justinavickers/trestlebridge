@@ -34,12 +34,7 @@ namespace TrestlebridgeEntity.Controllers
         {
             var user = await GetCurrentUserAsync();
 
-            //var facilitiesFromSQL = _context.Facilities.FromSql(@"
-            //    select f.RegisteredName, count(f.Id) NumberOfFaciities
-            //    from Farms f
-            //    join Facilities fc on fc.FarmId = f.Id
-            //    group by f.RegisteredName
-            //").ToList();
+         
 
             var facilityCount = (from facility in _context.Facilities
                     group facility by new {
@@ -60,6 +55,7 @@ namespace TrestlebridgeEntity.Controllers
 
 
             return View(facilityCount);
+
         }
 
         // GET: Farms/Details/5
@@ -77,6 +73,18 @@ namespace TrestlebridgeEntity.Controllers
                 return NotFound();
             }
 
+            var facilitiesFromSQL = _context.Facilities.Include(f => f.Type).FromSql($@"
+                select fc.Id, fc.Capacity, fc.FacilityTypeId, fc.FarmId
+                from Farms f
+                join Facilities fc on fc.FarmId = f.Id
+                join FacilityTypes ft on fc.FacilityTypeId = ft.Id
+                where f.Id = {id}
+              ").ToList();
+
+            foreach(Facility facility in facilitiesFromSQL)
+            {
+                farm.Facilities.Add(facility);
+            }
             return View(farm);
         }
 
